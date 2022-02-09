@@ -8,7 +8,7 @@ class ResidualLayerNorm(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, residual):
-        ## Apply the residual
-        residual_applied = ?
+        # Apply the residual
+        residual_applied = x + residual
         ln = self.layer_norm(residual_applied)
         return self.dropout(ln)

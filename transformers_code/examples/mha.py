@@ -12,19 +12,20 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
 
         # d_q, d_k, d_v
-        self.d = d_model//num_heads
+        self.d = d_model // num_heads
 
         self.d_model = d_model
         self.num_heads = num_heads
 
         self.dropout = nn.Dropout(dropout)
 
-
         self.linear_Qs = nn.ModuleList([nn.Linear(d_model, self.d)
                                         for _ in range(num_heads)])
-        ## create a list of layers for K, and a list of layers for V
-        self.linear_Ks = ?
-        self.linear_Vs = ?
+        # create a list of layers for K, and a list of layers for V
+        self.linear_Ks = nn.ModuleList([nn.Linear(d_model, self.d)
+                                        for _ in range(num_heads)])
+        self.linear_Vs = nn.ModuleList([nn.Linear(d_model, self.d)
+                                        for _ in range(num_heads)])
 
         self.mha_linear = nn.Linear(d_model, d_model)
 
@@ -37,7 +38,7 @@ class MultiHeadAttention(nn.Module):
         # q matmul k => [b x seq_len x seq_len]
 
         Q_K_matmul = torch.matmul(Q, K.permute(0, 2, 1))
-        scores = Q_K_matmul/m.sqrt(self.d)
+        scores = Q_K_matmul / m.sqrt(self.d)
         # shape(scores) = [B x seq_len x seq_len]
 
         attention_weights = F.softmax(scores, dim=-1)
@@ -62,8 +63,8 @@ class MultiHeadAttention(nn.Module):
         # shape(attn_weights_per_head) = [B x seq_len x seq_len] * num_heads
         for Q_, K_, V_ in zip(Q, K, V):
 
-            ## run scaled_dot_product_attention
-            output, attn_weight = ?
+            # run scaled_dot_product_attention
+            output, attn_weight = self.scaled_dot_product_attention(Q_, K_, V_)
 
             # shape(output) = [B x seq_len x D/num_heads]
             # shape(attn_weights_per_head) = [B x seq_len x seq_len]

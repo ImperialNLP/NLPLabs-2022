@@ -19,14 +19,9 @@ class MultiHeadAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-        # create a list of layers for K, and a list of layers for V
-
-        self.linear_Qs = nn.ModuleList([nn.Linear(d_model, self.d)
-                                        for _ in range(num_heads)])
-        self.linear_Ks = nn.ModuleList([nn.Linear(d_model, self.d)
-                                        for _ in range(num_heads)])
-        self.linear_Vs = nn.ModuleList([nn.Linear(d_model, self.d)
-                                        for _ in range(num_heads)])
+        self.linear_Qs = nn.Linear(d_model, d_model)
+        self.linear_Ks = nn.Linear(d_model, d_model)
+        self.linear_Vs = nn.Linear(d_model, d_model)
 
         self.mha_linear = nn.Linear(d_model, d_model)
 
@@ -40,8 +35,7 @@ class MultiHeadAttention(nn.Module):
         # shape(scores) = [B x num_heads x seq_len x seq_len]
 
         if mask is not None:
-            ## mask _scores_ with _mask_. Set our masked values to -1e9.
-            scores = ?
+            scores = scores.masked_fill(mask == False, -1e9)
 
         attention_weights = F.softmax(scores, dim=-1)
         # shape(attention_weights) = [B x num_heads x seq_len x seq_len]
@@ -57,28 +51,24 @@ class MultiHeadAttention(nn.Module):
         # If we're in the decoder MHA:          shape(pre_q) = shape(pre_k) = shape(pre_v) = [B x TRG_seq_len x D]
         # If we're in the decoder Cross MHA:    shape(pre_q) = [B x TRG_seq_len x D]. shape(pre_k) = shape(pre_v) = [B x SRC_seq_len x D]
 
-        Q = [linear_Q(pre_q) for linear_Q in self.linear_Qs]
-        K = [linear_K(pre_k) for linear_K in self.linear_Ks]
-        V = [linear_V(pre_v) for linear_V in self.linear_Vs]
-        # shape(Q, K, V) = [B x seq_len x D/num_heads] * num_heads
+        Q = self.linear_Qs(pre_q)
+        K = self.linear_Qs(pre_k)
+        V = self.linear_Qs(pre_v)
+        # shape(Q, K, V) = [B x seq_len x D]
 
-        output_per_head = []
-        attn_weights_per_head = []
-        # shape(output_per_head) = [B x seq_len x D/num_heads] * num_heads
-        # shape(attn_weights_per_head) = [B x seq_len x seq_len] * num_heads
+        batch_size = Q.shape[0]
 
-        for Q_, K_, V_ in zip(Q, K, V):
-            output, attn_weight = self.scaled_dot_product_attention(Q_, K_, V_, mask)
-            # shape(output) = [B x seq_len x D/num_heads]
-            # shape(attn_weights_per_head) = [B x seq_len x seq_len]
-            output_per_head.append(output)
-            attn_weights_per_head.append(attn_weight)
+        Q = torch.reshape(Q, (batch_size, self.num_heads, -1, self.d))
+        K = torch.reshape(K, (batch_size, self.num_heads, -1, self.d))
+        V = torch.reshape(V, (batch_size, self.num_heads, -1, self.d))
+        # shape(Q, K, V) = [B x num_heads x seq_len x D/num_heads]
 
-        output = torch.cat(output_per_head, -1)
-        attn_weights = torch.stack(attn_weights_per_head).permute(1, 0, 2, 3)
-        # shape(output) = [B x seq_len x D]
+        output, attn_weights = self.scaled_dot_product_attention(Q, K, V, mask=mask)
+        # shape(output) = [B x num_heads x seq_len x D/num_heads]
         # shape(attn_weights) = [B x num_heads x seq_len x seq_len]
 
+        output = torch.reshape(output, (batch_size, -1, self.d_model))
         projection = self.dropout(self.mha_linear(output))
+        # shape(output) = [B x seq_len x D]
 
         return projection, attn_weights

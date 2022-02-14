@@ -6,26 +6,33 @@ from .residual_layer_norm import ResidualLayerNorm
 class DecoderLayer(nn.Module):
     def __init__(self, d_model, num_heads, d_ff, dropout=0.3):
         super().__init__()
-        self.norm_1 = ResidualLayerNorm(d_model)
-        self.norm_2 = ResidualLayerNorm(d_model)
-        self.norm_3 = ResidualLayerNorm(d_model)
+        
+        ## initialise 3 ResidualLayerNorm layers
+        self.norm_1 = ?
+        self.norm_2 = ?
+        self.norm_3 = ?
 
-        self.mha_1 = MultiHeadAttention(d_model, num_heads)
-        self.mha_2 = MultiHeadAttention(d_model, num_heads)
-        self.ff = PWFFN(d_model, d_ff)
+        ## initialise 2 multihead attention layers
+        self.mha_1 = ?
+        self.mha_2 = ?
+        
+        ## initialise a postionwise feedforward layer
+        self.ff = ?
 
     def forward(self, x, encoder_outputs, trg_mask, src_mask):
         # shape(x) = [B x TRG_seq_len x D]
         # shape(encoder_outputs) = [B x SRC_seq_len x D]
 
-        masked_mha, masked_mha_attn_weights = self.mha_1(x, x, x, mask=trg_mask)
+        ## call the first multihead attention layer (remember to pass a mask)
+        masked_mha, masked_mha_attn_weights = ??
         # shape(masked_mha) = [B x TRG_seq_len x D]
         # shape(masked_mha_attn_weights) = [B x num_heads x TRG_seq_len x TRG_seq_len]
 
         norm1 = self.norm_1(masked_mha, x)
         # shape(norm1) = [B x TRG_seq_len x D]
-
-        enc_dec_mha, enc_dec_mha_attn_weights = self.mha_2(masked_mha, encoder_outputs, encoder_outputs, mask=src_mask)
+        
+        ## call the second multihead attention layer (remember to pass a mask)
+        enc_dec_mha, enc_dec_mha_attn_weights = ??
         # shape(enc_dec_mha) = [B x TRG_seq_len x D]
         # shape(enc_dec_mha_attn_weights) = [B x num_heads x TRG_seq_len x SRC_seq_len]
 

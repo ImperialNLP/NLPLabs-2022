@@ -12,11 +12,11 @@ sys.path.append(str(PACKAGE_PARENT))
 # %%
 toy_encodings = torch.Tensor([
     [
-        [0.0, 0.1, 0.2, 0.3],
-        [1.0, 1.1, 1.2, 1.3],
+        [0.0, 0.1, 0.2, 0.3], 
+        [1.0, 1.1, 1.2, 1.3], 
         [2.0, 2.1, 2.2, 2.3]
     ]
-])
+]) 
 # shape(toy_encodings) = [B, T, D] = (1, 3, 4)
 print("Toy Encodings:\n", toy_encodings)
 
@@ -49,6 +49,7 @@ print("Toy Encoder Layer Outputs Shape: \n", toy_encoder_layer_outputs.shape)
 
 print("Toy Encoder Layer Attn Outputs: \n", toy_encoder_layer_attn_outputs)
 print("Toy Encoder Layer Attn Outputs Shape: \n", toy_encoder_layer_attn_outputs.shape)
+
 
 
 # %%
@@ -96,24 +97,3 @@ print("Toy Scores Shape: \n", toy_scores.shape)
 # %%
 toy_scores = toy_scores.masked_fill(toy_mask == False, -1)
 print("Toy Scores Masked: \n", toy_scores)
-
-# %%
-d_model = 512
-warmup_steps = 4000
-step_num = range(1, 100000)
-
-lr_collection = []
-for step in step_num:
-    min_part_1 = step**-0.5
-    min_part_2 = step * warmup_steps**-1.5
-    lr_collection.append(min(min_part_1, min_part_2))
-
-import plotly.graph_objects as go
-fig = go.Figure(data=go.Scatter(x=list(step_num), y=lr_collection))
-
-fig.update_layout(title='Step number vs learning rate',
-                  xaxis_title='Step number (i)',
-                  yaxis_title='Learning rate')
-fig.show()
-
-# %%

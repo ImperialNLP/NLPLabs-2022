@@ -40,8 +40,8 @@ class MultiHeadAttention(nn.Module):
         # shape(scores) = [B x num_heads x seq_len x seq_len]
 
         if mask is not None:
-            ## mask _scores_ with _mask_. Set our masked values to -1e9.
-            scores = ?
+            # mask _scores_ with _mask_. Set our masked values to -1e9.
+            scores = scores.masked_fill(mask == False, -1e9)
 
         attention_weights = F.softmax(scores, dim=-1)
         # shape(attention_weights) = [B x num_heads x seq_len x seq_len]

@@ -97,3 +97,5 @@ print("Toy Scores Shape: \n", toy_scores.shape)
 # %%
 toy_scores = toy_scores.masked_fill(toy_mask == False, -1)
 print("Toy Scores Masked: \n", toy_scores)
+
+# %%

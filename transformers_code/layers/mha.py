@@ -35,7 +35,7 @@ class MultiHeadAttention(nn.Module):
         # shape(K, V) = [B x seq_len x D/num_heads]
         # shape(Q, K, V) = [B x num_heads x seq_len x D/num_heads]
 
-        Q_K_matmul = torch.matmul(Q, K.permute(0, 1, 3, 2))
+        Q_K_matmul = torch.matmul(Q, K.permute(0, 2, 1))
         scores = Q_K_matmul / m.sqrt(self.d)
         # shape(scores) = [B x num_heads x seq_len x seq_len]
 

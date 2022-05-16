@@ -36,13 +36,16 @@ class MultiHeadAttention(nn.Module):
         # shape(K, V) = [B x seq_len x D/num_heads]
         # shape(Q, K, V) = [B x num_heads x seq_len x D/num_heads]
 
-
+        
         Q_K_matmul = torch.matmul(Q, K.permute(0, 1, 3, 2))
         scores = Q_K_matmul/m.sqrt(self.d)
         # shape(scores) = [B x num_heads x seq_len x seq_len]
-        
-        if mask is not None:
-            scores = scores.masked_fill(mask == False, -1e9)
+        multi_mask = mask.unsqueeze(1)
+        multi_mask = torch.hstack([multi_mask for _ in range(self.num_heads)])
+        #multi_mask = multi_mask.unsqueeze(2)
+        if multi_mask is not None:
+            
+            scores = scores.masked_fill(multi_mask == False, -1e9)
 
         attention_weights = F.softmax(scores, dim=-1)
         # shape(attention_weights) = [B x num_heads x seq_len x seq_len]
